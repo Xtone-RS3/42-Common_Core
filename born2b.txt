@@ -1,0 +1,93 @@
+text compare:
+	https://text-compare.com/
+
+no graphical interface: 
+	ls /usr/bin/*session
+
+UFW:	
+	sudo ufw status
+	sudo service ufw status
+
+SSH:	
+	sudo service ssh status
+
+OS:
+	uname -v
+	uname --kernel-version
+	
+user groups:
+	getent group sudo
+	getent group user42
+	
+add user:
+	sudo adduser <namae>
+	
+create group:
+	sudo addgroup <namae>
+	
+add user to group:
+	sudo adduser <user> <group>
+	
+check:
+	getent group <group>
+	hostname
+	
+replace name:
+	sudo nano /etc/hostname
+	sudo nano /etc/hosts
+
+reboot:
+	sudo reboot
+	
+partitions:
+	lsblk
+
+sudo check:
+	which sudo
+	dpkg -s sudo
+	
+add to sudo:
+	sudo adduser <name> sudo
+	getent group sudo
+	nano /etc/sudoers.d/sudo_config
+	
+sudo path:
+	cd /var/log/sudo
+	ls
+	cat sudo_config
+	sudo nano lmao
+	cat sudo_config
+	
+check UFW:
+	dpkg -s ufw
+	sudo service ufw status
+	
+UFW rules:
+	sudo ufw staterus numbered
+
+create rule -> delete rule:
+	sudo ufw allow 8080
+	sudo ufw status numbered
+	sudo ufw delete <num_rule>
+	sudo ufw status numbered
+	sudo ufw delete <num_rule>
+	sudo ufw status numbered
+	
+check SSH:
+	which ssh
+	sudo service ssh status
+	
+use ssh to connect:
+	ssh root@localhost -p 4241
+	ssh <new user>@localhost -p 4241
+	
+monitoring: 
+	sudo crontab -u root -e
+	sudo /etc/init.d/cron stop
+	sudo /etc/init.d/cron start
+	
+WordPress:
+	127.0.0.1:1672
+
+Netdata:
+	127.0.0.1:1372
