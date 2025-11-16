@@ -1,0 +1,45 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   so_long.h                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: gasoares <gasoares@student.42porto.co      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/11/15 18:11:49 by gasoares          #+#    #+#             */
+/*   Updated: 2025/11/15 18:11:53 by gasoares         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef SO_LONG_H
+# define SO_LONG_H
+#include "mlx/mlx.h"
+#include "libft/libft.h"
+#include <math.h>
+#include "get_next_line/get_next_line.h"
+
+typedef struct s_game {
+	void	*mlx;
+	void	*win;
+	void	*img_wall;
+	void	*img_floor;
+	void	*img_player;
+	void	*img_exit;
+	void	*img_exit_open;
+	void	*img_collectible;
+	char	**map;
+	int		t_s;
+	int		player_x;
+	int		player_y;
+	int		score;
+	int		max_score;
+}	t_game;
+
+void load_images(t_game *game);
+void redraw(t_game *game);
+void try_move(t_game *game, int dx, int dy);
+void draw_map(t_game *game);
+void find_player(t_game *game);
+int key_handler(int keycode, t_game *game);
+
+
+#endif
