@@ -32,6 +32,7 @@ typedef struct s_game {
 	int		player_y;
 	int		score;
 	int		max_score;
+	int		walked;
 }	t_game;
 
 void load_images(t_game *game);

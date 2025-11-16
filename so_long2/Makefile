@@ -54,11 +54,11 @@ OBJECTS = $(CFILES:.c=.o)
 all: subsystems $(NAME)
 
 %.o : %.c
-	$(CC) $(CFLAGS) -Imlx -c -o $@ $<
+	$(CC) $(CFLAGS) -fPIE -Imlx -c -o $@ $<
 
 subsystems:
-	@make -C $(MLX_PATH) all
-	@make -C $(LIBFT_PATH) all
+	@make -s -C $(MLX_PATH) all
+	@make -s -C $(LIBFT_PATH) all
 
 $(NAME): $(OBJECTS)
 	$(CC) $(CFLAGS) $(MLX_FLAGS) $(OBJECTS) $(MLX_LIB) $(LIBFT_LIB) -o $(NAME)
