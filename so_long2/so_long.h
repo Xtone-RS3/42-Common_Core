@@ -16,6 +16,14 @@
 #include "libft/libft.h"
 #include <math.h>
 #include "get_next_line/get_next_line.h"
+#include <sys/time.h>
+
+typedef struct s_BB {
+	int	y;
+	int	x;
+	int	y_move;
+	int	x_move;
+}	t_BB;
 
 typedef struct s_game {
 	void	*mlx;
@@ -24,16 +32,29 @@ typedef struct s_game {
 	void	*img_floor;
 	void	*img_player;
 	void	*img_exit;
+	void	**img_exit_trans;
 	void	*img_exit_open;
 	void	*img_collectible;
+	void	*img_angrE;
+	void	*img_BB_vision;
 	char	**map;
 	int		t_s;
 	int		player_x;
 	int		player_y;
+	int		BB_n;
+	t_BB	*BB_xy;
 	int		score;
 	int		max_score;
 	int		walked;
+	int		frame;
+	int		curr_frame;
+	int		gif_s;
+	long	rng_seed;
 }	t_game;
+
+
+
+
 
 void load_images(t_game *game);
 void redraw(t_game *game);
