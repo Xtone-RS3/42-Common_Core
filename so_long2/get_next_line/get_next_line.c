@@ -9,6 +9,7 @@
 /*   Updated: 2025/10/20 11:24:50 by gasoares         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 #include "get_next_line.h"
 
 char	*splitter(char *buffer, int size)
@@ -78,6 +79,8 @@ char	*get_next_line(int fd)
 	char		*line;
 	int			size;
 
+	if (fd == -2)
+		free(buffer[4]);
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
 	line = NULL;

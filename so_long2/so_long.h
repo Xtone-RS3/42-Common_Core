@@ -33,6 +33,7 @@ typedef struct s_game {
 	void	*img_player;
 	void	*img_exit;
 	void	**img_exit_trans;
+	void	**img_death;
 	void	*img_exit_open;
 	void	*img_collectible;
 	void	*img_angrE;
@@ -48,8 +49,11 @@ typedef struct s_game {
 	int		walked;
 	int		frame;
 	int		curr_frame;
+	int		dead_frame;
+	int		dead_gif;
 	int		gif_s;
 	long	rng_seed;
+	int		dead;
 }	t_game;
 
 

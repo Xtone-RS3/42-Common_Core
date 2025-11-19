@@ -12,18 +12,65 @@
 
 #include "so_long.h"
 
+void	gigafree(t_game *g)
+{
+	int	i;
+
+	i = 0;
+	mlx_destroy_image(g->mlx, g->img_wall);
+	mlx_destroy_image(g->mlx, g->img_floor);
+	mlx_destroy_image(g->mlx, g->img_player);
+	mlx_destroy_image(g->mlx, g->img_exit);
+	mlx_destroy_image(g->mlx, g->img_exit_open);
+	mlx_destroy_image(g->mlx, g->img_collectible);
+	mlx_destroy_image(g->mlx, g->img_angrE);
+	mlx_destroy_image(g->mlx, g->img_BB_vision);
+	while (i < 85)
+		mlx_destroy_image(g->mlx, g->img_exit_trans[i++]);
+	i = 0;
+	while (i < 5)
+		mlx_destroy_image(g->mlx, g->img_death[i++]);
+	mlx_destroy_window(g->mlx, g->win);
+	mlx_destroy_display(g->mlx);
+	free(g->mlx);
+	free(g->img_exit_trans);
+	free(g->img_death);
+	i = 0;
+	if (g->map)
+	{
+		while (g->map[i])
+			free(g->map[i++]);
+		free(g->map);
+	}
+	free(g->BB_xy);
+}
+
 long	get_time_ms(void)
 {
 	struct timeval	tv;
 
 	gettimeofday(&tv, NULL);
-	return (tv.tv_sec * 1000L + tv.tv_usec / 1000);//now: 1763390678252
+	return (tv.tv_sec * 1000L + tv.tv_usec / 1000);
 }
 
-long	sadE(long boot_time, t_game *game)
+long	sade(long boot_time, t_game *game)
 {
 	game->rng_seed = (boot_time * 1664526) % 2147483647;
 	return ((int)game->rng_seed);
+}
+
+void	load_images_cont8(t_game *game, int w, int h)
+{
+	game->img_death[0] = mlx_xpm_file_to_image(game->mlx,
+			"images/monkaE/monkaE1.xpm", &w, &h);
+	game->img_death[1] = mlx_xpm_file_to_image(game->mlx,
+			"images/monkaE/monkaE2.xpm", &w, &h);
+	game->img_death[2] = mlx_xpm_file_to_image(game->mlx,
+			"images/monkaE/monkaE3.xpm", &w, &h);
+	game->img_death[3] = mlx_xpm_file_to_image(game->mlx,
+			"images/monkaE/monkaE4.xpm", &w, &h);
+	game->img_death[4] = mlx_xpm_file_to_image(game->mlx,
+			"images/monkaE/monkaE5.xpm", &w, &h);
 }
 
 void	load_images_cont7(t_game *game, int w, int h)
@@ -52,6 +99,7 @@ void	load_images_cont7(t_game *game, int w, int h)
 			"images/angrE.xpm", &w, &h);
 	game->img_BB_vision = mlx_xpm_file_to_image(game->mlx,
 			"images/forsenEmote2_2.xpm", &w, &h);
+	load_images_cont8(game, w, h);
 }
 
 void	load_images_cont6(t_game *game, int w, int h)
@@ -263,6 +311,26 @@ void	redraw(t_game *game)
 	draw_map(game);
 }
 
+void	animate_death(t_game *game)
+{
+	static long	last_time;
+	long		now;
+
+	now = get_time_ms();
+	if (game->dead == 0)
+		return ;
+	if (now - last_time >= (long)100 && game->dead_gif == 0)
+	{
+		last_time = now;
+		game->dead_frame++;
+		if (game->dead_frame >= 5)
+		{
+			game->dead_frame = 4;
+			game->dead_gif = 1;
+		}
+	}
+}
+
 void	animate(t_game *game)
 {
 	static long	last_time;
@@ -283,7 +351,7 @@ void	animate(t_game *game)
 	}
 }
 
-void	find_BB_xy(t_game *game)
+void	find_bb_xy(t_game *game)
 {
 	int	y;
 	int	x;
@@ -311,46 +379,39 @@ void	find_BB_xy(t_game *game)
 	}
 }
 
-void	BB_attempt(t_game *g, int neg, int i, int attempts)
+void	bb_attempt(t_game *g, int i)
 {
 	char	target;
+	int		dir_x;
+	int		dir_y;
+	int		rand;
 
-	if (attempts <= 0)
-		return ;
-	if (sadE(g->rng_seed, g) % 2 == 1)
-		neg = -1;
-	g->BB_xy[i].x_move = g->BB_xy[i].x + (sadE(g->rng_seed, g) % 2) * neg;
-	if (sadE(g->rng_seed, g) % 2 == 1)
-		neg = -1;
-	g->BB_xy[i].y_move = g->BB_xy[i].y + (sadE(g->rng_seed, g) % 2) * neg;
+	rand = sade(g->rng_seed, g) % 2;
+	dir_x = (rand * 2 - 1) * sade(g->rng_seed, g) % 2;
+	g->BB_xy[i].x_move = g->BB_xy[i].x + dir_x;
+	rand = sade(g->rng_seed, g) % 2;
+	dir_y = (rand * 2 - 1) * sade(g->rng_seed, g) % 2;
+	g->BB_xy[i].y_move = g->BB_xy[i].y + dir_y;
 	target = g->map[g->BB_xy[i].y_move][g->BB_xy[i].x_move];
-	ft_printf("g->BB_xy[%d].x_move: %d\ng->BB_xy[%d].y_move: %d\n", i, g->BB_xy[i].x_move, i, g->BB_xy[i].y_move);
 	if (target == '0')
 		g->map[g->BB_xy[i].y_move][g->BB_xy[i].x_move] = 'A';
-	else
-		return (BB_attempt(g, neg, i, attempts - 1));
+	else if (target == '1')
+		return (bb_attempt(g, i));
 }
 
-void	BB_looking(t_game *g)
+void	bb_looking(t_game *g)
 {
-	int		neg;
 	int		i;
 
 	i = 0;
-	neg = 1;
-	printf("=========================\n");
-	printf("BB_n: %d\n", g->BB_n);
 	while (i < g->BB_n)
 	{
-		BB_attempt(g, neg, i, 5);
-		
-		// else
-		// 	return ;
+		bb_attempt(g, i);
 		i++;
 	}
 }
 
-void	BB_move(t_game *g)
+void	bb_move(t_game *g)
 {
 	char	target;
 	int		i;
@@ -366,15 +427,8 @@ void	BB_move(t_game *g)
 			g->BB_xy[i].y = g->BB_xy[i].y_move;
 			g->BB_xy[i].x = g->BB_xy[i].x_move;
 		}
-		// else
-		// 	return ;
 		i++;
 	}
-	// g->player_x = new_x;
-	// g->player_y = new_y;
-	// g->walked += 1;
-	//ft_printf("%d\n", g->walked);
-	//redraw(g);
 }
 
 void	try_move(t_game *game, int dx, int dy)
@@ -383,24 +437,35 @@ void	try_move(t_game *game, int dx, int dy)
 	int		new_y;
 	char	target;
 
-	BB_move(game);
-	BB_looking(game);
 	new_x = game->player_x + dx;
 	new_y = game->player_y + dy;
 	target = game->map[new_y][new_x];
 	if (target == '1')
 		return ;
 	if (target == 'E' && game->score == game->max_score)
+	{
+		gigafree(game);
 		exit(0);
+	}
 	else if (target == 'E')
 		return ;
 	if (target == 'C')
 		game->score += 1;
+	if (target == 'A' || target == 'B')
+	{
+		game->dead = 1;
+		return ;
+	}
 	game->map[game->player_y][game->player_x] = '0';
 	game->map[new_y][new_x] = 'P';
 	game->player_x = new_x;
 	game->player_y = new_y;
 	game->walked += 1;
+	if (game->dead == 0)
+	{
+		bb_move(game);
+		bb_looking(game);
+	}
 	ft_printf("%d\n", game->walked);
 	redraw(game);
 }
@@ -413,7 +478,9 @@ void	stupid_fucking_norminette2(t_game *g, int y, int x)
 	else if (g->map[y][x] == 'A')
 		mlx_put_image_to_window(g->mlx, g->win,
 			g->img_BB_vision, x * g->t_s, y * g->t_s);
-	
+	else if (g->map[y][x] == 'P' && g->dead == 1)
+		mlx_put_image_to_window(g->mlx, g->win,
+			g->img_death[g->dead_frame], x * g->t_s, y * g->t_s);
 }
 
 void	stupid_fucking_norminette(t_game *g, int y, int x)
@@ -421,10 +488,10 @@ void	stupid_fucking_norminette(t_game *g, int y, int x)
 	if (g->map[y][x] == '1')
 		mlx_put_image_to_window(g->mlx, g->win,
 			g->img_wall, x * g->t_s, y * g->t_s);
-	else
+	else if (g->map[y][x] == '0')
 		mlx_put_image_to_window(g->mlx, g->win,
 			g->img_floor, x * g->t_s, y * g->t_s);
-	if (g->map[y][x] == 'P')
+	else if (g->map[y][x] == 'P' && g->dead != 1)
 		mlx_put_image_to_window(g->mlx, g->win,
 			g->img_player, x * g->t_s, y * g->t_s);
 	else if (g->map[y][x] == 'C')
@@ -448,9 +515,8 @@ void	draw_map(t_game *g)
 	int		x;
 	int		y;
 	char	*score_bar;
+	char	*score_hold;
 
-	//ft_printf("BB_1:\nx: %d\ny: %d\n", g->BB_xy[0].x, g->BB_xy[0].y);
-	//ft_printf("BB_2:\nx: %d\ny: %d\n", g->BB_xy[1].x, g->BB_xy[1].y);
 	y = 0;
 	while (g->map[y])
 	{
@@ -462,8 +528,11 @@ void	draw_map(t_game *g)
 		}
 		y++;
 	}
-	score_bar = ft_strjoin("score ", ft_itoa(g->score));
+	score_hold = ft_itoa(g->score);
+	score_bar = ft_strjoin("score ", score_hold);
 	mlx_string_put(g->mlx, g->win, 0, 10, 0xffffff, score_bar);
+	free(score_hold);//turn all this into an image
+	free(score_bar);
 }
 
 void	find_player(t_game *game)
@@ -514,18 +583,32 @@ void	find_score(t_game *game)
 	}
 }
 
-int	key_handler(int keycode, t_game *game)
+int	key_handler(int key, t_game *game)
 {
-	if (keycode == 65307)
+	if (key == 65307)
+	{
+		gigafree(game);
 		exit(0);
-	if (keycode == 'w')
-		try_move(game, 0, -1);
-	if (keycode == 's')
-		try_move(game, 0, 1);
-	if (keycode == 'a')
-		try_move(game, -1, 0);
-	if (keycode == 'd')
-		try_move(game, 1, 0);
+	}
+	if (game->dead_gif == 0 && game->dead == 0)
+	{
+		if (key == 'w')
+			try_move(game, 0, -1);
+		if (key == 's')
+			try_move(game, 0, 1);
+		if (key == 'a')
+			try_move(game, -1, 0);
+		if (key == 'd')
+			try_move(game, 1, 0);
+	}
+	else if (game->dead_gif == 1 && game->dead == 1)
+	{
+		if (key == 'w' || key == 's' || key == 'a' || key == 'd')
+		{
+			gigafree(game);
+			exit(0);
+		}
+	}
 	return (0);
 }
 
@@ -552,10 +635,12 @@ void	map_assign(int rows, t_game *g, char *to_open)
 			g->map[i][j] = line[j];
 			j++;
 		}
-		i++;
 		free(line);
+		i++;
 	}
 	g->win = mlx_new_window(g->mlx, (j - 1) * g->t_s, rows * g->t_s, to_open);
+	close(fd);
+	get_next_line(-2);
 }
 
 void	map_open_and_row(int argc, char **argv, t_game *game)
@@ -571,7 +656,7 @@ void	map_open_and_row(int argc, char **argv, t_game *game)
 	else if (argc == 2)
 		to_open = ft_strjoin("maps/", argv[1]);
 	else
-		to_open = "maps/map2.ber";
+		to_open = ft_strjoin("maps/map2.ber", "");
 	fd = open(to_open, O_RDONLY);
 	line = get_next_line(fd);
 	while (line)
@@ -583,14 +668,19 @@ void	map_open_and_row(int argc, char **argv, t_game *game)
 	close(fd);
 	game->map = ft_calloc(sizeof(char *), (rows + 1));
 	if (!game->map)
-		return ;
+		return (free(to_open));
 	map_assign(rows, game, to_open);
+	free(to_open);
 }
 
 int	game_loop(t_game *game)
 {
+	animate_death(game);
 	animate(game);
 	draw_map(game);
+	if (game->dead_gif == 1)
+		mlx_string_put(game->mlx, game->win, game->t_s * game->player_x,
+			game->t_s * game->player_y, 0xffffff, "GAME OVER!");
 	return (0);
 }
 
@@ -599,17 +689,23 @@ int	main(int argc, char **argv)
 	t_game	game;
 
 	game.BB_n = 0;
-	sadE(get_time_ms(), &game);
+	game.dead = 0;
+	game.dead_frame = 0;
+	game.dead_gif = 0;
+	sade(get_time_ms(), &game);
 	game.mlx = mlx_init();
 	game.img_exit_trans = ft_calloc(sizeof(void *), 85);
+	game.img_death = ft_calloc(sizeof(void *), 5);
 	load_images(&game);
 	map_open_and_row(argc, argv, &game);
 	find_player(&game);
 	find_score(&game);
-	mlx_key_hook(game.win, key_handler, &game);
-	find_BB_xy(&game);
-	BB_looking(&game);
+	if (game.dead != 1 || game.dead_gif == 1)
+		mlx_key_hook(game.win, key_handler, &game);
+	find_bb_xy(&game);
+	bb_looking(&game);
 	draw_map(&game);
 	mlx_loop_hook(game.mlx, game_loop, &game);
 	mlx_loop(game.mlx);
+	gigafree(&game);
 }

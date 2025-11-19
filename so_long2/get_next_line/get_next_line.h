@@ -30,4 +30,5 @@ char	*splitter(char *buffer, int size);
 char	*remain(char *buffer, int size);
 char	*read_func(int fd, char *buffer);
 
+
 #endif
