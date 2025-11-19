@@ -34,6 +34,7 @@ typedef struct s_game {
 	void	*img_exit;
 	void	**img_exit_trans;
 	void	**img_death;
+	void	**img_win;
 	void	*img_exit_open;
 	void	*img_collectible;
 	void	*img_angrE;

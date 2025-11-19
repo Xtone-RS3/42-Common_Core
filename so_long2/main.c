@@ -12,6 +12,34 @@
 
 #include "so_long.h"
 
+char	*img_name_gen(char *i)
+{
+	char	*hold;
+	char	*result;
+
+	hold = ft_strjoin("images/vibE/vibE_", i);
+	result = ft_strjoin(hold, ".xpm");
+	return (free(hold), result);
+}
+
+void	gigafree_cont(t_game *g, int i)
+{
+	mlx_destroy_window(g->mlx, g->win);
+	mlx_destroy_display(g->mlx);
+	free(g->mlx);
+	free(g->img_exit_trans);
+	free(g->img_death);
+	free(g->img_win);
+	if (g->map)
+	{
+		while (g->map[i])
+			free(g->map[i++]);
+		free(g->map);
+	}
+	free(g->BB_xy);
+	exit(0);
+}
+
 void	gigafree(t_game *g)
 {
 	int	i;
@@ -30,19 +58,10 @@ void	gigafree(t_game *g)
 	i = 0;
 	while (i < 5)
 		mlx_destroy_image(g->mlx, g->img_death[i++]);
-	mlx_destroy_window(g->mlx, g->win);
-	mlx_destroy_display(g->mlx);
-	free(g->mlx);
-	free(g->img_exit_trans);
-	free(g->img_death);
 	i = 0;
-	if (g->map)
-	{
-		while (g->map[i])
-			free(g->map[i++]);
-		free(g->map);
-	}
-	free(g->BB_xy);
+	while (i < 155)
+		mlx_destroy_image(g->mlx, g->img_win[i++]);
+	gigafree_cont(g, 0);
 }
 
 long	get_time_ms(void)
@@ -61,6 +80,11 @@ long	sade(long boot_time, t_game *game)
 
 void	load_images_cont8(t_game *game, int w, int h)
 {
+	int		i;
+	char	*hold;
+	char	*itoa_hold;
+
+	i = 0;
 	game->img_death[0] = mlx_xpm_file_to_image(game->mlx,
 			"images/monkaE/monkaE1.xpm", &w, &h);
 	game->img_death[1] = mlx_xpm_file_to_image(game->mlx,
@@ -71,6 +95,16 @@ void	load_images_cont8(t_game *game, int w, int h)
 			"images/monkaE/monkaE4.xpm", &w, &h);
 	game->img_death[4] = mlx_xpm_file_to_image(game->mlx,
 			"images/monkaE/monkaE5.xpm", &w, &h);
+	while (i < 155)
+	{
+		itoa_hold = ft_itoa(i);
+		hold = img_name_gen(itoa_hold);
+		game->img_win[i] = mlx_xpm_file_to_image(game->mlx,
+				hold, &w, &h);
+		free(hold);
+		free(itoa_hold);
+		i++;
+	}
 }
 
 void	load_images_cont7(t_game *game, int w, int h)
@@ -431,31 +465,8 @@ void	bb_move(t_game *g)
 	}
 }
 
-void	try_move(t_game *game, int dx, int dy)
+void	actual_movement(t_game *game, int new_x, int new_y)
 {
-	int		new_x;
-	int		new_y;
-	char	target;
-
-	new_x = game->player_x + dx;
-	new_y = game->player_y + dy;
-	target = game->map[new_y][new_x];
-	if (target == '1')
-		return ;
-	if (target == 'E' && game->score == game->max_score)
-	{
-		gigafree(game);
-		exit(0);
-	}
-	else if (target == 'E')
-		return ;
-	if (target == 'C')
-		game->score += 1;
-	if (target == 'A' || target == 'B')
-	{
-		game->dead = 1;
-		return ;
-	}
 	game->map[game->player_y][game->player_x] = '0';
 	game->map[new_y][new_x] = 'P';
 	game->player_x = new_x;
@@ -468,6 +479,39 @@ void	try_move(t_game *game, int dx, int dy)
 	}
 	ft_printf("%d\n", game->walked);
 	redraw(game);
+}
+
+int	target_logic(t_game *game, char target)
+{
+	if (target == '1')
+		return (0);
+	else if (target == 'E' && game->score == game->max_score)
+		return (gigafree(game), 0);
+	else if (target == 'E')
+		return (0);
+	else if (target == 'C')
+		return (game->score += 1, 1);
+	else if (target == 'A' || target == 'B')
+	{
+		if (target == 'A')
+			bb_move(game);
+		return (game->dead = 1, 0);
+	}
+	else
+		return (1);
+}
+
+void	try_move(t_game *game, int dx, int dy)
+{
+	int		new_x;
+	int		new_y;
+	char	target;
+
+	new_x = game->player_x + dx;
+	new_y = game->player_y + dy;
+	target = game->map[new_y][new_x];
+	if (target_logic(game, target) == 1)
+		actual_movement(game, new_x, new_y);
 }
 
 void	stupid_fucking_norminette2(t_game *g, int y, int x)
@@ -586,11 +630,8 @@ void	find_score(t_game *game)
 int	key_handler(int key, t_game *game)
 {
 	if (key == 65307)
-	{
 		gigafree(game);
-		exit(0);
-	}
-	if (game->dead_gif == 0 && game->dead == 0)
+	if (game->dead == 0)
 	{
 		if (key == 'w')
 			try_move(game, 0, -1);
@@ -601,15 +642,18 @@ int	key_handler(int key, t_game *game)
 		if (key == 'd')
 			try_move(game, 1, 0);
 	}
-	else if (game->dead_gif == 1 && game->dead == 1)
+	else if (game->dead_gif == 1)
 	{
 		if (key == 'w' || key == 's' || key == 'a' || key == 'd')
-		{
 			gigafree(game);
-			exit(0);
-		}
 	}
 	return (0);
+}
+
+void	map_assign_cont(int rows, t_game *g, char *to_open, int j)
+{
+	g->win = mlx_new_window(g->mlx, (j - 1) * g->t_s, rows * g->t_s, to_open);
+	get_next_line(-2);
 }
 
 void	map_assign(int rows, t_game *g, char *to_open)
@@ -623,24 +667,31 @@ void	map_assign(int rows, t_game *g, char *to_open)
 	fd = open(to_open, O_RDONLY);
 	while (i < rows)
 	{
-		j = 0;
+		j = -1;
 		line = get_next_line(fd);
 		g->map[i] = ft_calloc(sizeof(char *), (ft_strlen(line) + 1));
 		if (!g->map[i])
 			free(g->map);
-		while (line[j])
+		while (line[++j])
 		{
 			if (line[j] == 'B')
 				g->BB_n++;
 			g->map[i][j] = line[j];
-			j++;
 		}
 		free(line);
 		i++;
 	}
-	g->win = mlx_new_window(g->mlx, (j - 1) * g->t_s, rows * g->t_s, to_open);
+	map_assign_cont(rows, g, to_open, j);
 	close(fd);
-	get_next_line(-2);
+}
+
+void	map_open_and_row_cont(t_game *game, int rows, char *to_open)
+{
+	game->map = ft_calloc(sizeof(char *), (rows + 1));
+	if (!game->map)
+		return (free(to_open));
+	map_assign(rows, game, to_open);
+	free(to_open);
 }
 
 void	map_open_and_row(int argc, char **argv, t_game *game)
@@ -666,18 +717,18 @@ void	map_open_and_row(int argc, char **argv, t_game *game)
 		line = get_next_line(fd);
 	}
 	close(fd);
-	game->map = ft_calloc(sizeof(char *), (rows + 1));
-	if (!game->map)
-		return (free(to_open));
-	map_assign(rows, game, to_open);
-	free(to_open);
+	map_open_and_row_cont(game, rows, to_open);
 }
 
 int	game_loop(t_game *game)
 {
 	animate_death(game);
 	animate(game);
-	draw_map(game);
+	if ((game->dead == 1 && game->dead_gif == 0)
+		|| (game->score == game->max_score && game->gif_s == 0))
+	{
+		draw_map(game);
+	}
 	if (game->dead_gif == 1)
 		mlx_string_put(game->mlx, game->win, game->t_s * game->player_x,
 			game->t_s * game->player_y, 0xffffff, "GAME OVER!");
@@ -696,6 +747,7 @@ int	main(int argc, char **argv)
 	game.mlx = mlx_init();
 	game.img_exit_trans = ft_calloc(sizeof(void *), 85);
 	game.img_death = ft_calloc(sizeof(void *), 5);
+	game.img_win = ft_calloc(sizeof(void *), 155);
 	load_images(&game);
 	map_open_and_row(argc, argv, &game);
 	find_player(&game);
