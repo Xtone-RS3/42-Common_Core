@@ -732,6 +732,7 @@ int	game_loop(t_game *game)
 	if (game->dead_gif == 1)
 		mlx_string_put(game->mlx, game->win, game->t_s * game->player_x,
 			game->t_s * game->player_y, 0xffffff, "GAME OVER!");
+	usleep(16000);
 	return (0);
 }
 
