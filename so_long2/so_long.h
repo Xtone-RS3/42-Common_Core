@@ -42,7 +42,7 @@ typedef struct s_game
 	void	*img_angre;
 	void	*img_bb_vision;
 	char	**map;
-	int		tile_size;
+	int		t_s;
 	int		player_x;
 	int		player_y;
 	int		bb_n;
@@ -54,7 +54,7 @@ typedef struct s_game
 	int		curr_frame;
 	int		dead_frame;
 	int		dead_gif;
-	int		gif_stop;
+	int		gif_end;
 	long	rng_seed;
 	int		dead;
 	int		won;
