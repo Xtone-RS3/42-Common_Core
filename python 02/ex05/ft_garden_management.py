@@ -13,16 +13,7 @@ class GardenManager(object):
 
 
     def water_plants(self):
-        print("Opening watering system")
-        try:
-            if self.plant_name is None:
-                raise ValueError
-            print(f"Watering {self.plant_name} - success")
-            self.water += 1
-        except ValueError:
-            print("Error: Cannot water None - invalid plant!")
-        finally:
-            print("Closing watering system (cleanup)")
+        self.water += 1
 
 
     def check_plant_health(self):
@@ -53,8 +44,17 @@ if __name__ == "__main__":
     error = GardenManager(plant_name="", water=2, sun=4)
     print()
     print("Watering plants...")
-    tomato.water_plants()
-    lettuce.water_plants()
+    print("Opening watering system")
+    for plant in [tomato,lettuce]:
+        try:
+            if plant. == "":
+                raise ValueError
+            plant.water_plants()
+        except ValueError:
+            print("Error: Cannot water None - invalid plant!")
+        finally:
+            print("Closing watering system (cleanup)")
+        
     print()
     tomato.check_plant_health()
     # tomato.add_plant(plant_name="tomato")
