@@ -11,30 +11,27 @@ class GardenManager(object):
         self.water = water
         self.sun = sun
 
-
     def get_name(self):
         return self.plant_name
 
-
     def water_plants(self):
         self.water += 1
-
 
     def check_plant_health(self):
         try:
             if self.plant_name is None:
                 raise ValueError("Error: Plant name cannot be empty")
-            if 0<self.water<11:
+            if 0 < self.water < 11:
                 pass
-            elif self.water>10:
+            elif self.water > 10:
                 raise ValueError(f"Error checking {self.plant_name}: Water level {self.water} is too high (max 10)")
-            elif self.water<1:
+            elif self.water < 1:
                 raise ValueError(f"Error checking {self.plant_name}: Water level {self.water} is too low (min 1)")
-            if 1<self.sun<13:
+            if 1 < self.sun < 13:
                 pass
-            elif self.sun>12:
+            elif self.sun > 12:
                 raise ValueError(f"Error checking {self.plant_name}: Sunlight hours {self.sun} is too high (max 12)")
-            elif self.sun<2:
+            elif self.sun < 2:
                 raise ValueError(f"Error checking {self.plant_name}: Sunlight hours {self.sun} is too low (min 2)")
             print(f"{self.plant_name} healthy (water: {self.water}, sun: {self.sun})")
         except ValueError as e:
@@ -56,7 +53,7 @@ if __name__ == "__main__":
     print("Watering plants...")
     print("Opening watering system")
     try:
-        for plant in [tomato,lettuce]:
+        for plant in [tomato, lettuce]:
             if plant.get_name() == "":
                 raise ValueError
             print(f"Watering {plant.get_name()} - success")
@@ -67,7 +64,7 @@ if __name__ == "__main__":
         print("Closing watering system (cleanup)")
     print()
     print("Checking plant health...")
-    for plant in [tomato,lettuce]:
+    for plant in [tomato, lettuce]:
         plant.check_plant_health()
     print()
     print("Testing error recovery...")

@@ -1,5 +1,5 @@
 def garden_operations():
-    arr = {"a":1}
+    arr = {"a": 1}
     try:
         print("Testing ValueError...")
         int("lmao")
@@ -33,7 +33,8 @@ def garden_operations():
     except (ValueError, ZeroDivisionError, FileNotFoundError, KeyError):
         print("Caught an error, but program continues!")
     print()
-    print ("All error types tested successfully")
+    print("All error types tested successfully")
+
 
 if __name__ == "__main__":
     print("=== Garden Error Types Demo ===")
