@@ -137,13 +137,12 @@ if __name__ == "__main__":
     #     for player, item in inventory['players'].items():
     #         print(item.values())
     #     print(f"this: {info.keys()}")
-
-
-
-
-#         print(f"{key} ({inventory['players']['alice'][key]['Type']}, {inventory['players']['alice'][key]['Rarity']}):\
+#         print(f"{key} ({inventory['players']['alice'][key]['Type']},
+# {inventory['players']['alice'][key]['Rarity']}):\
 #  {inventory['players']['alice'][key]['Qty']}x @\
-#  {inventory['players']['alice'][key]['Price']} gold each = {inventory['players']['alice'][key]['Qty'] * inventory['players']['alice'][key]['Price']}")
+#  {inventory['players']['alice'][key]['Price']} gold each =
+# {inventory['players']['alice'][key]['Qty'] *
+# inventory['players']['alice'][key]['Price']}")
 
 # =========================Second=========================
 # if __name__ == "__main__":
@@ -187,7 +186,8 @@ if __name__ == "__main__":
 #     for key in alice.keys():
 #         print(f"{key} ({alice[key]['Type']}, {alice[key]['Rarity']}):\
 #  {alice[key]['Qty']}x @\
-#  {alice[key]['Price']} gold each = {alice[key]['Qty'] * alice[key]['Price']}")
+#  {alice[key]['Price']} gold each = {alice[key]['Qty']
+# * alice[key]['Price']}")
 #     print()
 
 #     total_val = 0
@@ -204,7 +204,8 @@ if __name__ == "__main__":
 #     for item_name, item_data in alice.items():
 #         category_count[item_data['Type']] += item_data['Qty']
 #     print(f"Categories: weapon({category_count['weapon']}),\
-#  consumable({category_count['consumable']}), armor({category_count['armor']})")
+#  consumable({category_count['consumable']}),
+# armor({category_count['armor']})")
 #     print()
 
 #     print("=== Transaction: Alice gives Bob 2 potions ===")
