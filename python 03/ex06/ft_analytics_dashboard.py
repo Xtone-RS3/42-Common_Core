@@ -119,5 +119,6 @@ if __name__ == "__main__":
     """
     mvp = {'name': [points, minutes]}
     """
-    mvp = {}
-    print(f"MVP: ({max(sesh['score'] for sesh in everything['sessions'])} points, {} minutes)")
+    mvp = {sesh['player']: [sesh['score'], sesh['duration_minutes']] for sesh in everything['sessions']}
+    print(mvp)
+    #print(f"MVP: ({max(sesh['score'] for sesh in everything['sessions'])} points, {} minutes)")
