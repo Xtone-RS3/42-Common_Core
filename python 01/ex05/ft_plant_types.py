@@ -14,7 +14,8 @@ class Plant(object):
         return self.__age
 
     def get_info(self):
-        print(f"Plant: {self.get_name()} ({self.get_height()}cm, {self.age} days)")
+        print(f"Plant: {self.get_name()} ({self.get_height()}cm, {self.age}\
+ days)")
 
 
 class Flower(Plant):
@@ -26,7 +27,8 @@ class Flower(Plant):
         print(f"{self.get_name()} is blooming beautifully!")
 
     def get_info(self):
-        print(f"{self.get_name()} (Flower): {self.get_height()}cm, {self.get_age()} days, {self.__color} color")
+        print(f"{self.get_name()} (Flower): {self.get_height()}cm,\
+ {self.get_age()} days, {self.__color} color")
 
 
 class Tree(Plant):
@@ -36,23 +38,28 @@ class Tree(Plant):
         self.__shade_sq = shade_sq
 
     def produce_shade(self):
-        print(f"{self.get_name()} provides {self.__shade_sq} square meters of shade")
+        print(f"{self.get_name()} provides {self.__shade_sq} square meters of\
+ shade")
 
     def get_info(self):
-        print(f"{self.get_name()} (Tree): {self.get_height()}cm, {self.get_age()} days, {self.__trunk_diameter}cm diameter")
+        print(f"{self.get_name()} (Tree): {self.get_height()}cm,\
+ {self.get_age()} days, {self.__trunk_diameter}cm diameter")
 
 
 class Vegetable(Plant):
-    def __init__(self, name, harvest_season, nutritional_value, height=0, age=0):
+    def __init__(self, name, harvest_season, nutritional_value, height=0,
+                 age=0):
         super().__init__(name, height, age)
         self.__harvest_season = harvest_season
         self.__nutritional_value = nutritional_value
 
     def get_info(self):
-        print(f"{self.get_name()} (Vegetable): {self.get_height()}cm, {self.get_age()} days, {self.__harvest_season} harvest")
+        print(f"{self.get_name()} (Vegetable): {self.get_height()}cm,\
+ {self.get_age()} days, {self.__harvest_season} harvest")
 
     def nut_value(self):
-        print(f"{self.get_name()} is rich in vitamin {self.__nutritional_value}")
+        print(f"{self.get_name()} is rich in vitamin\
+ {self.__nutritional_value}")
 
 
 if __name__ == "__main__":

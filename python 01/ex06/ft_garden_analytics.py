@@ -23,7 +23,8 @@ class Plant(object):
         return self.__age
 
     def get_info(self):
-        print(f"Plant: {self.get_name()} ({self.get_height()}cm, {self.get_age()} days)")
+        print(f"Plant: {self.get_name()} ({self.get_height()}cm,\
+ {self.get_age()} days)")
 
 
 class FloweringPlant(Plant):
@@ -38,7 +39,8 @@ class FloweringPlant(Plant):
         return self.__color
 
     def get_info(self):
-        print(f"{self.get_name()} (Flower): {self.get_height()}cm, {self.get_age()} days, {self.get_color()} color")
+        print(f"{self.get_name()} (Flower): {self.get_height()}cm,\
+ {self.get_age()} days, {self.get_color()} color")
 
 
 class PrizeFlower(FloweringPlant):
@@ -50,7 +52,9 @@ class PrizeFlower(FloweringPlant):
         return self.__prize
 
     def get_info(self):
-        print(f"{self.get_name()} (Flower): {self.get_height()}cm, {self.get_age()} days, {self.get_color()} color, prize points {self.get_prize()}")
+        print(f"{self.get_name()} (Flower): {self.get_height()}cm,\
+ {self.get_age()} days, {self.get_color()} color, prize points\
+ {self.get_prize()}")
 
 
 class GardenManager:
@@ -89,23 +93,27 @@ class GardenManager:
             self._garden = garden
 
         def total_height(self):
-            print(f"Garden total height: {sum(plant.get_height() for plant in self._garden.plants.values())}")
+            print(f"Garden total height:\
+ {sum(plant.get_height() for plant in self._garden.plants.values())}")
 
         def count(self):
-            print(f"Plants added: {len(self._garden.plants)}, Total growth: {self._garden.total_growth}cm")
+            print(f"Plants added: {len(self._garden.plants)}, Total growth:\
+ {self._garden.total_growth}cm")
 
         def type_info(self):
             t1 = 0
             t2 = 0
             t3 = 0
             for plant in self._garden.plants.keys():
-                if type(self._garden.plants[plant]).__name__ == "Plant":
+                plantType = type(self._garden.plants[plant]).__name__
+                if plantType == "Plant":
                     t1 = t1 + 1
-                elif type(self._garden.plants[plant]).__name__ == "FloweringPlant":
+                elif plantType == "FloweringPlant":
                     t2 = t2 + 1
-                elif type(self._garden.plants[plant]).__name__ == "PrizeFlower":
+                elif plantType == "PrizeFlower":
                     t3 = t3 + 1
-            print(f"Plant types: {t1} regular, {t2} flowering, {t3} prize flower")
+            print(f"Plant types: {t1} regular, {t2} flowering, {t3} prize\
+ flower")
 
         def stats_report(self):
             print("Plants in garden: ")
@@ -114,10 +122,11 @@ class GardenManager:
                 if type(Case).__name__ == "Plant":
                     print(f"- {plant}: {Case.get_height()}cm")
                 elif type(Case).__name__ == "FloweringPlant":
-                    print(f"- {plant}: {Case.get_height()}cm, {Case.get_color()} flowers (blooming)")
+                    print(f"- {plant}: {Case.get_height()}cm,\
+ {Case.get_color()} flowers (blooming)")
                 elif type(Case).__name__ == "PrizeFlower":
-                    print(f"- {plant}: {Case.get_height()}cm, {Case.get_color()} flowers (blooming), Prize points: {Case.get_prize()}")
-
+                    print(f"- {plant}: {Case.get_height()}cm,\
+ {Case.get_color()} flowers (blooming), Prize points: {Case.get_prize()}")
 
 
 if __name__ == "__main__":
@@ -129,7 +138,8 @@ if __name__ == "__main__":
     alice_garden.add_plant(Plant("Alice", "Oak Tree", 100, 1825))
     alice_garden.add_plant(Plant("Alice", "Birch Tree", 500, 10))
     alice_garden.add_plant(FloweringPlant("Alice", "Rose", "red", 25, 30))
-    alice_garden.add_plant(PrizeFlower("Alice", "Sunflower", 10, "yellow", 50, 10))
+    alice_garden.add_plant(PrizeFlower("Alice", "Sunflower", 10, "yellow",
+                                       50, 10))
     print()
     alice_garden.grow_plants()
     print()
@@ -139,7 +149,7 @@ if __name__ == "__main__":
     GardenManager.GardenStats(alice_garden).count()
     GardenManager.GardenStats(alice_garden).type_info()
     print()
-    print(f"Garden scores:")
+    print("Garden scores:")
     for owner in GardenManager._gardens.keys():
         print(f" - {owner}: {GardenManager._gardens[owner].score}")
     print(f"Total gardens managed: {len(GardenManager._gardens)}")

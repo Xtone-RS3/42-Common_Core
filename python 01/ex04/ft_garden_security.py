@@ -8,7 +8,8 @@ class SecurePlant(object):
         print(f"Created: {self.__name}")
 
     def get_info(self):
-        print(f"Current plant: {self.__name} ({self.__height}cm, {self.__age} days)")
+        print(f"Current plant: {self.__name} ({self.__height}cm, {self.__age}\
+ days)")
 
     def set_height(self, value):
         if value < 0:

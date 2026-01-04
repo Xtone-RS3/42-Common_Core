@@ -22,7 +22,7 @@ def garden_operations():
         print("Testing KeyError...")
         print(arr["b"])
     except KeyError:
-        print("Caught KeyError: 'missing\_plant'")
+        print("Caught KeyError: 'missing\\_plant'")
     print()
     try:
         print("Testing multiple errors together...")

@@ -24,16 +24,21 @@ class GardenManager(object):
             if 0 < self.water < 11:
                 pass
             elif self.water > 10:
-                raise ValueError(f"Error checking {self.plant_name}: Water level {self.water} is too high (max 10)")
+                raise ValueError(f"Error checking {self.plant_name}: Water\
+ level {self.water} is too high (max 10)")
             elif self.water < 1:
-                raise ValueError(f"Error checking {self.plant_name}: Water level {self.water} is too low (min 1)")
+                raise ValueError(f"Error checking {self.plant_name}: Water\
+ level {self.water} is too low (min 1)")
             if 1 < self.sun < 13:
                 pass
             elif self.sun > 12:
-                raise ValueError(f"Error checking {self.plant_name}: Sunlight hours {self.sun} is too high (max 12)")
+                raise ValueError(f"Error checking {self.plant_name}: Sunlight\
+ hours {self.sun} is too high (max 12)")
             elif self.sun < 2:
-                raise ValueError(f"Error checking {self.plant_name}: Sunlight hours {self.sun} is too low (min 2)")
-            print(f"{self.plant_name} healthy (water: {self.water}, sun: {self.sun})")
+                raise ValueError(f"Error checking {self.plant_name}: Sunlight\
+ hours {self.sun} is too low (min 2)")
+            print(f"{self.plant_name} healthy (water: {self.water},\
+ sun: {self.sun})")
         except ValueError as e:
             print(e)
 
