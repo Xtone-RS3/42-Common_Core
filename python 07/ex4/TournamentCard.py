@@ -1,3 +1,4 @@
+import random
 from ex0.Card import Card
 from ex2.Combatable import Combatable
 from .Rankable import Rankable
@@ -11,9 +12,14 @@ class TournamentCard(Card, Combatable, Rankable):
         self.rating = 0
         self.attack_stat = attack_stat
         self.block = block
+        self.rating = 0
 
     def calculate_rating(self) -> int:
-        pass
+        if self.rating == 0:
+            self.rating = random.randrange(1000, 2000, 50)
+        else:
+            return self.rating
+        return self.rating
 
     def update_wins(self, wins: int) -> None:
         self.wins = wins

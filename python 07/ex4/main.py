@@ -9,18 +9,17 @@ if __name__ == "__main__":
     print()
     tourn = TournamentPlatform()
     dragon_001 = TournamentCard("Fire Dragon", 5, "common", 10, 5)
-    tourn.register_card(dragon_001)
     print(
         dragon_001.name,
-        "(ID: dragon_001):"
+        f"(ID: {tourn.register_card(dragon_001)}):"
     )
     print(
         "- Interfaces:",
-        [classy.__name__ for classy in type(dragon_001).__mro__ if classy.__name__ not in ["TournamentCard", "ABC", "object"]]
+        [classy.__name__ for classy in type(dragon_001).__mro__ if classy.__name__ not in ["TournamentCard", "ABC", "object"]]  # noqa: E501
     )
     print(
         "- Rating:",
-        dragon_001.rating
+        dragon_001.calculate_rating()
     )
     print(
         "- Record:",
@@ -28,18 +27,17 @@ if __name__ == "__main__":
     )
     print()
     wizard_001 = TournamentCard("Time Wizard", 6, "common", 5, 10)
-    tourn.register_card(wizard_001)
     print(
         wizard_001.name,
-        "(ID: wizard_001):"
+        f"(ID: {tourn.register_card(wizard_001)}):"
     )
     print(
         "- Interfaces:",
-        [classy.__name__ for classy in type(wizard_001).__mro__ if classy.__name__ not in ["TournamentCard", "ABC", "object"]]
+        [classy.__name__ for classy in type(wizard_001).__mro__ if classy.__name__ not in ["TournamentCard", "ABC", "object"]]  # noqa: E501
     )
     print(
         "- Rating:",
-        wizard_001.rating
+        wizard_001.calculate_rating()
     )
     print(
         "- Record:",
@@ -49,5 +47,22 @@ if __name__ == "__main__":
     print("Creating tournament match...")
     print(
         "Match result:",
-        tourn.create_match(dragon_001.name, wizard_001.name)
+        tourn.create_match("dragon_001", "wizard_001")
     )
+    print()
+    print("Tournament Leaderboard:")
+    n = 0
+    for card in tourn.get_leaderboard():
+        n += 1
+        print(
+            f"{n}.",
+            f"{card.name} -",
+            f"Rating: {int(card.rating)}",
+            f"{card.wins}-{card.losses}"
+        )
+    print()
+    print("Platform Report:")
+    print(tourn.generate_tournament_report())
+    print()
+    print("=== Tournament Platform Successfully Deployed! ===")
+    print("All abstract patterns working together harmoniously!")
