@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "pyproject"
+version = "1.0"
+description = "Matrix Analysis Tool"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "2.1.0"
+requests = "2.31.0"
+matplotlib = "3.7.2"
+numpy = "<2.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.mason.api"
