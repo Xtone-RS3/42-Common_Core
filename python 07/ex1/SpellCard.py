@@ -9,14 +9,10 @@ class SpellCard(Card):
         self.effect_type = effect_type
 
     def play(self, game_state: dict) -> dict:
-        if self.effect_type == "damage":
-            pass
-        elif self.effect_type == "heal":
-            pass
-        elif self.effect_type == "buff":
-            pass
-        elif self.effect_type == "debuff":
-            pass
+        if self.effect_type == "damage" or self.effect_type == "heal":
+            return {"card_played": self.name, "mana_used": self.cost, "effect": f"{self.cost} {self.effect_type} to target"}  # noqa: E501
+        elif self.effect_type == "buff" or self.effect_type == "debuff":
+            return {"card_played": self.name, "mana_used": self.cost, "effect": f"{self.effect_type} target"}  # noqa: E501
 
     def resolve_effect(self, targets: list) -> dict:
         pass
