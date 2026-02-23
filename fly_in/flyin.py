@@ -29,7 +29,7 @@ class Cell:
         self.parent_i = 0
     # Parent cell's column index
         self.parent_j = 0
-            
+
 
     def print_data(self):
         print(
