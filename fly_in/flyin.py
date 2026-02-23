@@ -83,6 +83,7 @@ def reconstruct_path(parent, goal_name, goal_time, cell_lookup, reservations, dr
             reservations["edges"][(prev_cell.name, cell.name, t)] = reservations["edges"].get((prev_cell.name, cell.name, t), 0) + 1
 
     print(f"Drone {drone_id+1} path:")
+    # print(path)
     for cell, t in path:
         print(f"{cell.name}@{t}", end=" -> ")
     print()
@@ -181,6 +182,7 @@ def a_star_search(map, reservations, drone_id, time_offset=0):
 if __name__ == "__main__":
     map = []
     nb_drones = 0
+    path_taken = {}
     with open(sys.argv[1]) as file:
         map_info = file.read().split("\n")
         for line in map_info:
@@ -231,5 +233,30 @@ if __name__ == "__main__":
         #print(src.parent_i, src.parent_j)
         #print(dest)
     #a_star_search(map, reservations, 1)
+    print("Smart way to print path:")
     for drone_id in range(nb_drones):
-        a_star_search(map, reservations, drone_id)
+        path_taken[drone_id] = a_star_search(map, reservations, drone_id)
+    print("============")
+    print("Silly way to print path:")
+    max_turn = max(x for values in path_taken.values() for (_, x) in values)
+    print(max_turn)
+    print("=====")
+    for turn in range(max_turn+1):
+        print("turn", turn)
+        for drone in range(len(path_taken)):
+            try:
+                print([name.name for (name, _) in [values[x] for values in path_taken.values() for (_, x) in values if x == turn]])
+            except Exception:
+                pass
+            
+            # try:
+            #     print(path_taken[drone][turn][0].name, path_taken[drone][turn][1])
+            # except Exception:
+            #     pass
+        print()
+    # print([path_taken[drone] for drone in path_taken])
+    # print([drone for drone in path_taken])
+    # print("============")
+    # for x in range(len([path_taken[drone] for drone in path_taken])):
+    #     print([n[0].name for n in [path_taken[drone][x] for drone in path_taken]])
+    # print(path_taken)
