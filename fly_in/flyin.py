@@ -1,8 +1,7 @@
-# Python program for A* Search Algorithm
 from collections import defaultdict
 import heapq
 import sys
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 
 reservations: Dict[str, Dict[Tuple, int]] = {
@@ -101,7 +100,7 @@ def a_star_search(map, reservations, drone_id, time_offset=0):
     g_score = {(src.name, time_offset): 0}
     parent = {}
 
-    # quick name → cell lookup
+    # i wont go insane from having to re-write the same comprehension 50 times
     cell_lookup = {cell.name: cell for cell in map}
 
     while open_list:
@@ -119,7 +118,6 @@ def a_star_search(map, reservations, drone_id, time_offset=0):
             )
 
         # --- MOVE TO NEIGHBORS ---
-        # print("========================")
         for neighbor_name, neighbor_cell in curr_cell.connections.items():
             next_time = time + 1
             # reservation checks
@@ -179,72 +177,165 @@ def a_star_search(map, reservations, drone_id, time_offset=0):
 
 
 if __name__ == "__main__":
+    # TODO PLEASE REMEMBER TO CHECK IF MAKEFILE LINT WORKS!!!!!!!!
     map = []
     nb_drones = 0
     path_taken = {}
-    with open(sys.argv[1]) as file:
-        map_info = file.read().split("\n")
-        for line in map_info:
-            if line.startswith("nb_drones: "):
-                nb_drones = int(line.split(": ")[1])
-            if line.startswith(("start_hub", "hub", "end_hub")):
-                map.append(Cell())
-                curr_cell = map[len(map)-1]
-                data = line.split(": ")
-                if data[0] == "start_hub":
-                    curr_cell.is_start = True
-                    curr_cell.max_drones = 1000
-                if data[0] == "end_hub":
-                    curr_cell.is_end = True
-                    curr_cell.max_drones = 1000
-                data = data[1].split(' ', 3)
-                curr_cell.name = data[0]
-                curr_cell.x = int(data[1])
-                curr_cell.y = int(data[2])
-                data = data[3].strip("[]").split(" ")
-                for field in data:
-                    if field.startswith("color="):
-                        curr_cell.color = field.split("=")[1]
-                    if field.startswith("max_drones="):
-                        curr_cell.max_drones = int(field.split("=")[1])
-                    if field.startswith("zone="):
-                        curr_cell.zone_type = field.split("=")[1]
-            elif line.startswith("connection"):
-                connection = line.split(": ")[1].replace(" ", "-")
-                connection_list = connection.split("-")
-                cell1 = map[
-                    next((i for i, cell in enumerate(map)
-                          if cell.name == connection_list[0]), -1)
-                ]
-                cell2 = map[next((i for i, cell in enumerate(map)
-                                  if cell.name == connection_list[1]), -1)]
-                max_link_capacity = -1
-                if len(connection_list) == 3:
-                    max_link_capacity =\
-                        int(connection_list[2].strip("[]").split("=")[1])
-                cell1.connections[cell2.name] = cell2
-        for cell in map:
-            if cell.is_start:
-                src = cell
-            if cell.is_end:
-                dest = [cell.parent_i, cell.parent_j]
-    print("==================================================================")
-    print("Smart way to print path:")
-    print("==================================================================")
-    for drone_id in range(nb_drones):
-        path_taken[drone_id] = a_star_search(map, reservations, drone_id)
-    print("==================================================================")
-    print("Silly way to print path:")
-    print("==================================================================")
-    turns = defaultdict(list)
-    for drone, moves in path_taken.items():
-        for cell, turn in moves:
-            turns[turn].append((drone, cell))
-    path_taken = dict(sorted(turns.items()))
-    for turn in turns:
-        movements = []
-        for drone, cell in path_taken[turn]:
-            name = cell.name
-            movements.append(f"D{drone+1}-{name}")
-        print(f"Turn {turn+1}\n-> ", end="")
-        print(" ".join(movements))
+    parse_credits: dict[str, Any] = {
+        "nodes": 0,
+        "start_node": False,
+        "end_node": False,
+        "drone_nb": 0,
+        "node_names": [],
+        "valid_zones": ["normal", "blocked", "restricted", "priority"],
+        "valid_node_metadata": ["color", "zone", "max_drones"],
+        "curr_connections": []
+    }
+    try:
+        with open(sys.argv[1]) as file:
+            map_info = file.read().split("\n")
+            for line in map_info:
+                if line.startswith("nb_drones: "):
+                    nb_drones = int(line.split(": ")[1])
+                    parse_credits["drone_nb"] = nb_drones
+                if line.startswith(("start_hub", "hub", "end_hub")):
+                    map.append(Cell())
+                    curr_cell = map[len(map)-1]
+                    data = line.split(": ")
+                    if data[0] == "start_hub":
+                        if parse_credits["start_node"] is True:
+                            raise Exception(
+                                "Parsing issue, too many start hubs"
+                            )
+                        curr_cell.is_start = True
+                        curr_cell.max_drones = 1024
+                        parse_credits["start_node"] = True
+                    if data[0] == "end_hub":
+                        if parse_credits["end_node"] is True:
+                            raise Exception(
+                                "Parsing issue, too many end hubs"
+                            )
+                        curr_cell.is_end = True
+                        curr_cell.max_drones = 1024
+                        parse_credits["end_node"] = True
+                    data = data[1].split(' ', 3)
+                    curr_cell.name = data[0]
+                    if curr_cell.name.__contains__("-") or\
+                            curr_cell.name.__contains__(" "):
+                        raise Exception("Invalid node name, contains a dash")
+                    if curr_cell.name in parse_credits["node_names"]:
+                        raise Exception("Duplicated node name")
+                    parse_credits["node_names"].append(curr_cell.name)
+                    curr_cell.x = int(data[1])
+                    curr_cell.y = int(data[2])
+                    parse_credits["nodes"] += 1
+                    data = data[3].strip("[]").split(" ")
+                    for item in data:
+                        if item.split("=")[0] not in\
+                                parse_credits["valid_node_metadata"]:
+                            raise Exception(
+                                f"Bad parsing syntax: {item.split("=")[0]}"
+                            )
+                    for field in data:
+                        if field.startswith("color="):
+                            curr_cell.color = field.split("=")[1]
+                        if field.startswith("max_drones="):
+                            if int(field.split("=")[1]) <= 0:
+                                raise Exception(
+                                    f"Invalid max_drones: {
+                                        int(field.split("=")[1])
+                                    }"
+                                )
+                            curr_cell.max_drones = int(field.split("=")[1])
+                        if field.startswith("zone="):
+                            if field.split("=")[1] not in\
+                                    parse_credits["valid_zones"]:
+                                raise Exception(
+                                    f"Incorrect zone: {field.split("=")[1]}"
+                                )
+                            curr_cell.zone_type = field.split("=")[1]
+                elif line.startswith("connection"):
+                    connection = line.split(": ")[1].replace(" ", "-")
+                    connection_list = connection.split("-")
+                    if (connection_list[0], connection_list[1]) in\
+                            parse_credits["curr_connections"]:
+                        raise Exception(
+                            f"Duplicate connection between: {
+                                connection_list[0]
+                            } and {
+                                connection_list[1]
+                            }"
+                        )
+                    cell1 = map[
+                        next((i for i, cell in enumerate(map)
+                              if cell.name == connection_list[0]), -1)
+                    ]
+                    cell2 = map[next((i for i, cell in enumerate(map)
+                                      if cell.name == connection_list[1]), -1)]
+                    parse_credits["curr_connections"].append(
+                        (connection_list[0], connection_list[1])
+                    )
+                    parse_credits["curr_connections"].append(
+                        (connection_list[1], connection_list[0])
+                    )
+                    max_link_capacity = -1
+                    if len(connection_list) >= 3:
+                        max_link = connection_list[2].strip("[]").split("=")[1]
+                        if connection_list[2].strip("[]").split("=")[0] !=\
+                                "max_link_capacity":
+                            raise Exception(
+                                f"Bad parsing syntax: {
+                                    connection_list[2].strip("[]").split("=")
+                                    [0]
+                                }"
+                            )
+                        if int(line.strip("]").split()[2].split(
+                            "[max_link_capacity="
+                        )[1]) <= 0:
+                            raise Exception(
+                                f"Invalid max_link_capacity: {
+                                    int(line.strip("]").split()[2].split(
+                                        "[max_link_capacity="
+                                    )[1])
+                                }"
+                            )
+                        max_link_capacity =\
+                            int(max_link)
+                    cell1.connections[cell2.name] = cell2
+            for cell in map:
+                if cell.is_start:
+                    src = cell
+                if cell.is_end:
+                    dest = [cell.parent_i, cell.parent_j]
+        if parse_credits["drone_nb"] <= 0:
+            raise Exception(
+                f"Invalid number of drones: {parse_credits["drone_nb"]}"
+            )
+        if parse_credits["nodes"] <= 3:
+            raise Exception("Too few nodes")
+        if parse_credits["start_node"] is False:
+            raise Exception("Missing start node")
+        if parse_credits["end_node"] is False:
+            raise Exception("Missing end node")
+        print("==============================================================")
+        print("Smart way to print path:")
+        print("==============================================================")
+        for drone_id in range(nb_drones):
+            path_taken[drone_id] = a_star_search(map, reservations, drone_id)
+        print("==============================================================")
+        print("Silly way to print path:")
+        print("==============================================================")
+        turns = defaultdict(list)
+        for drone, moves in path_taken.items():
+            for cell, turn in moves:
+                turns[turn].append((drone, cell))
+        path_taken = dict(sorted(turns.items()))
+        for turn in turns:
+            movements = []
+            for drone, cell in path_taken[turn]:
+                name = cell.name
+                movements.append(f"D{drone+1}-{name}")
+            print(f"Turn {turn+1}\n-> ", end="")
+            print(" ".join(movements))
+    except Exception as e:
+        print(e)
