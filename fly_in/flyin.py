@@ -10,16 +10,15 @@ reservations: Dict[str, Dict[Tuple, int]] = {
 }
 
 
-# Define the Cell class
 class Cell:
     def __init__(self):
         self.name = ""
         self.color = ""
-        self.max_drones = 1  # default
+        self.max_drones = 1
         self.zone_type = None
         self.is_start = False
         self.is_end = False
-        self.connections = {}
+        self.connections = {}  # cell, max_link_capacity
         self.x = 0
         self.y = 0
         self.parent = None
@@ -65,8 +64,9 @@ def reconstruct_path(
         state = parent[state]
 
     # add start
-    cell_name, time = state
-    path.append((cell_lookup[cell_name], time))
+    # print(state)
+    # cell_name, time = state
+    # path.append((cell_lookup[cell_name], time))
 
     path.reverse()
     # reserve path
@@ -80,7 +80,7 @@ def reconstruct_path(
 
     print(f"Drone {drone_id+1} path:")
     for cell, t in path:
-        print(f"{cell.name}@{t+1}", end=" -> ")
+        print(f"{cell.name}@{t}", end=" -> ")
     print()
     return path
 
@@ -118,16 +118,31 @@ def a_star_search(map, reservations, drone_id, time_offset=0):
             )
 
         # --- MOVE TO NEIGHBORS ---
-        for neighbor_name, neighbor_cell in curr_cell.connections.items():
+        for neighbor_name, [neighbor_cell, max_link_capacity]\
+                in curr_cell.connections.items():
+            # print(neighbor_name, neighbor_cell, max_link_capacity)
             next_time = time + 1
             # reservation checks
-            current_count =\
+            current_cell_count =\
                 reservations["nodes"].get((neighbor_name, next_time), 0)
 
+            current_edge_count =\
+                reservations["edges"].get(
+                    (curr_cell.name, neighbor_name, next_time), 0
+                )
+
+            # print(current_edge_count)
+            # print(curr_cell.name, neighbor_name)
+            # print(current_edge_count)
+            # print(reservations["edges"])
+            # print(neighbor_name, next_time)
+            # print(current_cell_count)
+            # print(reservations["nodes"])
             if neighbor_cell.zone_type == "restricted":
                 next_time += 1  # spend extra timestep inside node
 
-            if current_count >= neighbor_cell.max_drones:
+            if current_cell_count >= neighbor_cell.max_drones\
+                    or current_edge_count >= max_link_capacity:
                 return a_star_search(
                     map, reservations, drone_id, time_offset+1
                 )
@@ -278,7 +293,7 @@ if __name__ == "__main__":
                     parse_credits["curr_connections"].append(
                         (connection_list[1], connection_list[0])
                     )
-                    max_link_capacity = -1
+                    max_link_capacity = 1
                     if len(connection_list) >= 3:
                         max_link = connection_list[2].strip("[]").split("=")[1]
                         if connection_list[2].strip("[]").split("=")[0] !=\
@@ -301,7 +316,7 @@ if __name__ == "__main__":
                             )
                         max_link_capacity =\
                             int(max_link)
-                    cell1.connections[cell2.name] = cell2
+                    cell1.connections[cell2.name] = [cell2, max_link_capacity]
             for cell in map:
                 if cell.is_start:
                     src = cell
@@ -335,7 +350,7 @@ if __name__ == "__main__":
             for drone, cell in path_taken[turn]:
                 name = cell.name
                 movements.append(f"D{drone+1}-{name}")
-            print(f"Turn {turn+1}\n-> ", end="")
+            print(f"Turn {turn}\n-> ", end="")
             print(" ".join(movements))
     except Exception as e:
         print(e)

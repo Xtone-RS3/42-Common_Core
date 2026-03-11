@@ -1,0 +1,1 @@
+python3 -m uv run python3 -m src c [--functions_definition .\subject\data\input\functions_definition.json] [--input .\subject\data\input\function_calling_tests.json] [--output .\subject\data\output]
