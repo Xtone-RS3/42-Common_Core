@@ -1,20 +1,22 @@
 # Variables
 PYTHON = python3
-MAIN = flyin.py
-# Manually override this shit
-MAP = maps/easy/01_linear_path.txt 
 
 .PHONY: install run debug clean lint lint-strict
 
-install:
-	$(PYTHON) -m pip install mypy
-	$(PYTHON) -m pip install flake8
+# install:
+# 	$(PYTHON) -m venv venv
+# 	source venv/bin/activate
+# 	$(PYTHON) -m pip install uv
+# 	uv sync --directory llm_sdk --active --no-cache
+# 	$(PYTHON) -m pip install accelerate
+# 	$(PYTHON) -m pip install mypy
+# 	$(PYTHON) -m pip install flake8
 
 run:
-	$(PYTHON) $(MAIN) $(MAP)
+	$(PYTHON) -m uv run src/call-me-maybe.py --functions_definition --input --output
 
 debug:
-	$(PYTHON) -m pdb $(MAIN) $(MAP)
+	$(PYTHON) -m uv run src/call-me-maybe.py --functions_definition --input --output
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +

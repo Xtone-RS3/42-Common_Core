@@ -1,52 +1,57 @@
 from collections import defaultdict
 import heapq
 import sys
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 
-reservations: Dict[str, Dict[Tuple, int]] = {
+reservations: Dict[str, Dict[Tuple[Any], int]] = {
     "nodes": {},   # (cell_name, time) -> drone_id
     "edges": {}    # (from_name, to_name, time) -> drone_id
 }
 
 
 class Cell:
-    def __init__(self):
+    def __init__(self) -> None:
         self.name = ""
         self.color = ""
         self.max_drones = 1
-        self.zone_type = None
+        self.zone_type = ""  # None ?
         self.is_start = False
         self.is_end = False
-        self.connections = {}  # cell, max_link_capacity
+        self.connections: dict[Any, Any] = {}  # cell, max_link_capacity
         self.x = 0
         self.y = 0
-        self.parent = None
+        self.parent = Any
         self.parent_i = 0
         self.parent_j = 0
 
-    def print_data(self):
+    def print_data(self) -> None:
         print(
             "name:", self.name, "color:", self.color, "max:", self.max_drones,
             "zone:", self.zone_type,
             "coords[", self.parent_i, self.parent_j, "]"
         )
 
-    def get_connections(self):
+    def get_connections(self) -> Any:
         return self.connections
 
 
-def is_destination(row, col, dest):
+def is_destination(row: Any, col: Any, dest: Any) -> Any:
     return row == dest[0] and col == dest[1]
 
 
-def calculate_h_value(curr_cell, dest):
+def calculate_h_value(curr_cell: Any, dest: Any) -> Any:
     return ((curr_cell.x - dest.x) ** 2 + (curr_cell.y - dest.y) ** 2) ** 0.5
 
 
 def reconstruct_path(
-        parent, goal_name, goal_time, cell_lookup, reservations, drone_id
-):
+        parent: Any,
+        goal_name: Any,
+        goal_time: Any,
+        cell_lookup: Any,
+        reservations: Any,
+        drone_id: Any
+) -> List[Any]:
     path = []
     state = (goal_name, goal_time)
     stuck = False
@@ -69,7 +74,7 @@ def reconstruct_path(
     # path.append((cell_lookup[cell_name], time))
 
     path.reverse()
-    # reserve path
+    # since this drone ended, reserve its path
     for i, (cell, t) in enumerate(path):
         reservations["nodes"][(cell.name, t)] =\
             reservations["nodes"].get((cell.name, t), 0) + 1
@@ -85,7 +90,10 @@ def reconstruct_path(
     return path
 
 
-def a_star_search(map, reservations, drone_id, time_offset=0):
+def a_star_search(map: Any,
+                  reservations: Any,
+                  drone_id: Any,
+                  time_offset: Any = 0) -> Any:
     # find src and dest
     for cell in map:
         if cell.is_start:
@@ -93,12 +101,12 @@ def a_star_search(map, reservations, drone_id, time_offset=0):
         if cell.is_end:
             dest = cell
 
-    open_list = []
+    open_list: list[Any] = []
     heapq.heappush(open_list, (0, time_offset, src.name))
     # (f, time, cell_name)
 
     g_score = {(src.name, time_offset): 0}
-    parent = {}
+    parent: dict[Any, Any] = {}
 
     # i wont go insane from having to re-write the same comprehension 50 times
     cell_lookup = {cell.name: cell for cell in map}
@@ -147,21 +155,23 @@ def a_star_search(map, reservations, drone_id, time_offset=0):
                     map, reservations, drone_id, time_offset+1
                 )
 
-            if (neighbor_name, cell_name, next_time) in reservations["edges"]:
-                continue
+            # if (neighbor_name, cell_name, next_time) in reservations[
+            #     "edges"
+            # ]:
+            #     continue  # remove
 
             # movement cost
             if neighbor_cell.zone_type == "restricted":
                 move_cost = 2.0
             elif neighbor_cell.zone_type == "priority":
-                move_cost = 0.5
+                move_cost = 0.9
             else:
                 move_cost = 1.0
-            occupancy =\
-                reservations["nodes"].get((neighbor_name, next_time), 0)
-            move_cost += occupancy
+            # occupancy =\
+            #     reservations["nodes"].get((neighbor_name, next_time), 0)
+            # move_cost += occupancy  # delete?
 
-            tentative_g = g_score[(cell_name, time)] + move_cost
+            tentative_g: Any = g_score[(cell_name, time)] + move_cost
             state = (neighbor_name, next_time)
 
             if state not in g_score or tentative_g < g_score[state]:
@@ -192,7 +202,6 @@ def a_star_search(map, reservations, drone_id, time_offset=0):
 
 
 if __name__ == "__main__":
-    # TODO PLEASE REMEMBER TO CHECK IF MAKEFILE LINT WORKS!!!!!!!!
     map = []
     nb_drones = 0
     path_taken = {}
@@ -217,6 +226,13 @@ if __name__ == "__main__":
                     map.append(Cell())
                     curr_cell = map[len(map)-1]
                     data = line.split(": ")
+                    if len(map) * nb_drones >= 1000:
+                        elements = len(map) * nb_drones
+                        raise Exception(
+                            "Too complex: nodes*drones exceed the recursion\
+ limit of 1000 elements" +
+                            f" ({elements})"
+                        )
                     if data[0] == "start_hub":
                         if parse_credits["start_node"] is True:
                             raise Exception(
@@ -249,7 +265,7 @@ if __name__ == "__main__":
                         if item.split("=")[0] not in\
                                 parse_credits["valid_node_metadata"]:
                             raise Exception(
-                                f"Bad parsing syntax: {item.split("=")[0]}"
+                                f"Bad parsing syntax: {item.split('=')[0]}"
                             )
                     for field in data:
                         if field.startswith("color="):
@@ -257,16 +273,15 @@ if __name__ == "__main__":
                         if field.startswith("max_drones="):
                             if int(field.split("=")[1]) <= 0:
                                 raise Exception(
-                                    f"Invalid max_drones: {
-                                        int(field.split("=")[1])
-                                    }"
+                                    f"Invalid max_drones: "
+                                    f"{int(field.split('=')[1])}"
                                 )
-                            curr_cell.max_drones = int(field.split("=")[1])
+                            curr_cell.max_drones = int(field.split('=')[1])
                         if field.startswith("zone="):
                             if field.split("=")[1] not in\
                                     parse_credits["valid_zones"]:
                                 raise Exception(
-                                    f"Incorrect zone: {field.split("=")[1]}"
+                                    f"Incorrect zone: {field.split('=')[1]}"
                                 )
                             curr_cell.zone_type = field.split("=")[1]
                 elif line.startswith("connection"):
@@ -275,11 +290,8 @@ if __name__ == "__main__":
                     if (connection_list[0], connection_list[1]) in\
                             parse_credits["curr_connections"]:
                         raise Exception(
-                            f"Duplicate connection between: {
-                                connection_list[0]
-                            } and {
-                                connection_list[1]
-                            }"
+                            f"Duplicate connection between: "
+                            f"{connection_list[0]} and {connection_list[1]}"
                         )
                     cell1 = map[
                         next((i for i, cell in enumerate(map)
@@ -298,21 +310,20 @@ if __name__ == "__main__":
                         max_link = connection_list[2].strip("[]").split("=")[1]
                         if connection_list[2].strip("[]").split("=")[0] !=\
                                 "max_link_capacity":
+                            bad_syntax = connection_list[2].strip(
+                                '[]'
+                            ).split('=')[0]
                             raise Exception(
-                                f"Bad parsing syntax: {
-                                    connection_list[2].strip("[]").split("=")
-                                    [0]
-                                }"
+                                f"Bad parsing syntax: {bad_syntax}"
                             )
                         if int(line.strip("]").split()[2].split(
                             "[max_link_capacity="
                         )[1]) <= 0:
+                            error = int(line.strip(']').split()[
+                                2
+                            ].split('[max_link_capacity=')[1])
                             raise Exception(
-                                f"Invalid max_link_capacity: {
-                                    int(line.strip("]").split()[2].split(
-                                        "[max_link_capacity="
-                                    )[1])
-                                }"
+                                f"Invalid max_link_capacity: {error}"
                             )
                         max_link_capacity =\
                             int(max_link)
@@ -324,7 +335,7 @@ if __name__ == "__main__":
                     dest = [cell.parent_i, cell.parent_j]
         if parse_credits["drone_nb"] <= 0:
             raise Exception(
-                f"Invalid number of drones: {parse_credits["drone_nb"]}"
+                f"Invalid number of drones: {parse_credits['drone_nb']}"
             )
         if parse_credits["nodes"] <= 3:
             raise Exception("Too few nodes")

@@ -1,1 +1,13 @@
-python3 -m uv run python3 -m src c [--functions_definition .\subject\data\input\functions_definition.json] [--input .\subject\data\input\function_calling_tests.json] [--output .\subject\data\output]
+python3 -m uv run python3 -m src [--functions_definition .\subject\data\input\functions_definition.json] [--input .\subject\data\input\function_calling_tests.json] [--output .\subject\data\output]
+
+step 1:
+	python3 -m venv venv
+	source venv/bin/activate
+	python3 -m pip install uv
+	uv sync --directory llm_sdk --active --no-cache
+	python3 -m pip install accelerate
+	python3 -m pip install mypy
+	python3 -m pip install flake8
+
+step 2:
+python3 -m pip install llm_sdk
