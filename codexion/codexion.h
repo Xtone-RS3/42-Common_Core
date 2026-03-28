@@ -19,18 +19,18 @@
 #include <string.h>
 # include <sys/time.h>
 
-typedef struct s_task
-{
-	int			id;
-	int			deadline;
-}				t_task;
+// typedef struct s_task
+// {
+// 	int			id;
+// 	int			deadline;
+// }				t_task;
 
-typedef struct s_minheap
-{
-	t_task	*arr;
-	int		size;
-	int		capacity;
-}			t_minheap;
+// typedef struct s_minheap
+// {
+// 	t_task	*arr;
+// 	int		size;
+// 	int		capacity;
+// }			t_minheap;
 
 // typedef struct s_my_heap
 // {
@@ -39,18 +39,29 @@ typedef struct s_minheap
 // 	t_coders	coder;
 // }				t_my_heap;
 
+typedef struct s_scheduler
+{
+	char			*name;
+	int				*queue; // array of coder IDs
+	int				size;
+	int				capacity;
+	pthread_mutex_t	lock;
+	pthread_cond_t	cond;
+	// t_coders		*coders;
+} 					t_scheduler;
+
 typedef struct s_config
 {
-	int		number_of_coders; // number_of_coders;
-	int		number_of_compiles_required; // number_of_compiles_required;
-	size_t	dongle_cooldown; // what does the CD stand for?
-	int		number_of_compiles_req; // req meals
-	size_t	base_burnout_time;
-	size_t	base_compile_time;
-	size_t	base_debug_time;
-	size_t	base_refactor_time;
-	char	*scheduler; // forsenAlright
-}			t_config;
+	int				number_of_coders; // number_of_coders;
+	int				number_of_compiles_required; // number_of_compiles_required;
+	size_t			dongle_cooldown; // what does the CD stand for?
+	int				number_of_compiles_req; // req meals
+	size_t			base_burnout_time;
+	size_t			base_compile_time;
+	size_t			base_debug_time;
+	size_t			base_refactor_time;
+	t_scheduler		scheduler;
+}					t_config;
 
 typedef struct s_coders
 {
@@ -70,7 +81,7 @@ typedef struct s_coders
 	pthread_mutex_t	*write_lock;
 	pthread_mutex_t	*dead_lock;
 	pthread_mutex_t	*compile_lock; // *compile_lock;
-	pthread_mutex_t	*heap;
+	// pthread_mutex_t	*scheduler_lock;
 	t_config		*config;
 }					t_coders;
 
@@ -81,8 +92,9 @@ typedef struct s_program
 	pthread_mutex_t	dead_lock;
 	pthread_mutex_t	compile_lock; // compile_lock;
 	pthread_mutex_t	write_lock;
-	pthread_mutex_t	heap;
+	pthread_mutex_t	scheduler_lock;
 	t_coders		*coders; // *philos;
+	// t_scheduler		scheduler;
 }					t_program;
 
 int	ft_usleep(size_t milliseconds);

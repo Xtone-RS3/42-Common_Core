@@ -70,6 +70,7 @@ void	dream(t_coders *coders)
 void	eat(t_coders *coders)
 {
 	pthread_mutex_lock(coders->r_dongle);
+	// printf(">%d last time is: %zu\n", coders->id, coders->last_compile_time);
 	print_message("has taken a dongle", coders, coders->id);
 	// printf("eat this: %d\n", coders->config->number_of_coders);
 	if (coders->config->number_of_coders == 1) //easy check for solo dev
@@ -100,6 +101,91 @@ void	dongle_cd(t_coders *coders)
 	pthread_mutex_unlock(coders->r_dongle);
 }
 
+int is_my_turn(t_coders *coders)
+{
+	t_scheduler *s = &coders->config->scheduler;
+	int id = coders->id - 1;
+
+	// for (int i = 0; i < s->size / 2; i++)
+	for (int i = 0; i < s->size; i++)
+	{
+		if (s->queue[i] == id)
+			return (1);
+	}
+	return (0);
+}
+
+void pop_current(t_scheduler *scheduler)
+{
+	int i;
+
+	if (scheduler->size <= 0)
+		return;
+
+	for (i = 0; i < scheduler->size - 1; i++)
+		scheduler->queue[i] = scheduler->queue[i + 1];
+}
+
+void push_back_or_reorder(t_scheduler *scheduler, int id)
+{
+	scheduler->queue[scheduler->size - 1] = id;
+}
+
+void push_back_or_reorder_edf(t_coders *coders, int id)
+{
+	int		i;
+	size_t	new_deadline;
+	size_t	d;
+	int		qd_coder_id;
+
+	i = coders->config->scheduler.size - 2;
+	new_deadline = coders[id].last_compile_time + coders[id].time_to_burnout;
+	while (i >= 0)
+	{
+		qd_coder_id = coders->config->scheduler.queue[i];
+		d = coders[qd_coder_id].last_compile_time + coders[qd_coder_id].time_to_burnout;
+		if (d < new_deadline)
+			break;
+		if (d == new_deadline && qd_coder_id > id)
+			break;
+		coders->config->scheduler.queue[i + 1] = coders->config->scheduler.queue[i];
+		i--;
+	}
+	coders->config->scheduler.queue[i + 1] = id;
+}
+
+void wait_turn(t_coders *coders)
+{
+	pthread_mutex_lock(&coders->config->scheduler.lock);
+
+	while (!is_my_turn(coders))
+		pthread_cond_wait(&coders->config->scheduler.cond,
+							&coders->config->scheduler.lock);
+
+	pthread_mutex_unlock(&coders->config->scheduler.lock);
+}
+
+void finish_turn(t_coders *coders)
+{
+	int	current;
+
+	current = coders->config->scheduler.queue[0];
+	pthread_mutex_lock(&coders->config->scheduler.lock);
+	pop_current(&coders->config->scheduler);          // remove self from queue
+	if (strcmp(coders->config->scheduler.name, "fifo") == 0)
+	{
+		// printf("fifo: %d\n", current);
+		push_back_or_reorder(&coders->config->scheduler, current); // FIFO or EDF logic
+	}
+	else if (strcmp(coders->config->scheduler.name, "edf") == 0)
+	{
+		// printf("edf: %d\n", current);
+		push_back_or_reorder_edf(coders, current); // FIFO or EDF logic
+	}
+	pthread_cond_broadcast(&coders->config->scheduler.cond);
+	pthread_mutex_unlock(&coders->config->scheduler.lock);
+}
+
 // Thread routine
 
 void	*coders_routine(void *pointer)
@@ -122,8 +208,11 @@ void	*coders_routine(void *pointer)
 	// printf(">curr: %d\n", curr);
 	while (!dead_loop(coders))
 	{
-		ft_usleep(1);
+		wait_turn(coders);
+		// ft_usleep(1); //needed?
 		eat(coders);
+		finish_turn(coders);
+		// ft_usleep(1);
 		dongle_cd(coders);
 		dream(coders);
 		think(coders);
@@ -140,7 +229,8 @@ void	init_program(t_program *program, t_coders *coders)
 	pthread_mutex_init(&program->write_lock, NULL);
 	pthread_mutex_init(&program->dead_lock, NULL);
 	pthread_mutex_init(&program->compile_lock, NULL);
-	pthread_mutex_init(&program->heap, NULL);
+	// pthread_mutex_init(&program->scheduler_lock, NULL);
+	// pthread_mutex_init(&coders->config->scheduler.lock, NULL);//forsenAlright? or forsenInsane?
 }
 
 void	init_input(t_coders *coders, char **argv)
@@ -178,7 +268,7 @@ void	init_coders(t_coders *coders, t_program *program, pthread_mutex_t *dongles,
 		coders[n_coders].write_lock = &program->write_lock;
 		coders[n_coders].dead_lock = &program->dead_lock;
 		coders[n_coders].compile_lock = &program->compile_lock;
-		coders[n_coders].heap = &program->heap;
+		// coders[n_coders].scheduler_lock = &program->scheduler_lock;
 		coders[n_coders].burnt_out = &program->dead_flag;
 		coders[n_coders].l_dongle = &dongles[n_coders];
 		coders[n_coders].start_time = get_current_time();
@@ -194,6 +284,21 @@ void	init_coders(t_coders *coders, t_program *program, pthread_mutex_t *dongles,
 	// printf("assigned: %p\n", (void *)coders->config);
 }
 
+void init_scheduler(t_scheduler *scheduler, int n) //, t_coders *coders, int mode
+{
+	scheduler->queue = malloc(sizeof(int) * n);
+	scheduler->size = n;
+	scheduler->capacity = n;
+	// scheduler->coders = coders;
+	// scheduler->mode = mode; //forsenNotLookingAtYou for now
+
+	for (int i = 0; i < n; i++)
+		scheduler->queue[i] = i;
+
+	pthread_mutex_init(&scheduler->lock, NULL);
+	pthread_cond_init(&scheduler->cond, NULL);
+}
+
 void	init_config(t_config *config, char **argv)
 {
 	config->number_of_coders = atoi(argv[1]);
@@ -203,7 +308,7 @@ void	init_config(t_config *config, char **argv)
 	config->base_refactor_time = atoi(argv[5]);
 	config->number_of_compiles_required = atoi(argv[6]);
 	config->dongle_cooldown = atoi(argv[7]);
-	config->scheduler = argv[8];
+	config->scheduler.name = argv[8];
 }
 
 void	destory_all(char *str, t_program *program, pthread_mutex_t *dongles, t_config *config)
@@ -219,7 +324,8 @@ void	destory_all(char *str, t_program *program, pthread_mutex_t *dongles, t_conf
 	pthread_mutex_destroy(&program->write_lock);
 	pthread_mutex_destroy(&program->compile_lock);
 	pthread_mutex_destroy(&program->dead_lock);
-	pthread_mutex_destroy(&program->heap);
+	// pthread_mutex_destroy(&program->scheduler_lock);
+	pthread_mutex_destroy(&config->scheduler.lock);
 	// printf("destroy this: %d\n", config->number_of_coders);
 	while (i < config->number_of_coders)
 	{
@@ -256,6 +362,9 @@ int	check_if_dead(t_coders *coders)
 			pthread_mutex_lock(coders[0].dead_lock);
 			*coders->burnt_out = 1;
 			pthread_mutex_unlock(coders[0].dead_lock);
+			pthread_mutex_lock(&coders[0].config->scheduler.lock);
+			pthread_cond_broadcast(&coders[0].config->scheduler.cond);
+			pthread_mutex_unlock(&coders[0].config->scheduler.lock);
 			return (1);
 		}
 		i++;
@@ -274,11 +383,9 @@ int	check_if_all_ate(t_coders *coders)
 	finished_eating = 0;
 	if (coders->config->number_of_compiles_required == -1) //coders[0].config.number_of_compiles_required
 		return (0);
-	// printf("check if all ate this: %d\n", coders->config->number_of_coders);
 	while (i < coders->config->number_of_coders)
 	{
 		pthread_mutex_lock(coders[i].compile_lock);
-		// printf("number of compiles: %i\n", coders[i].number_of_compiles);
 		if (coders[i].number_of_compiles >= coders->config->number_of_compiles_required)
 			finished_eating++;
 		pthread_mutex_unlock(coders[i].compile_lock);
@@ -319,6 +426,7 @@ int	thread_create(t_program *program, pthread_mutex_t *dongles, t_config *config
 		if (pthread_create(&program->coders[i].thread, NULL, &coders_routine,
 				&program->coders[i]) != 0)
 			destory_all("Thread creation error", program, dongles, config);
+		ft_usleep(1);
 		i++;
 	}
 	i = 0;
@@ -373,11 +481,23 @@ int	main(int argc, char **argv)
 	init_program(&program, coders);
 	init_dongles(dongles, atoi(argv[1]));
 	init_coders(coders, &program, dongles, argv, &config);
+	init_scheduler(&config.scheduler, atoi(argv[1]));
 	//<---   heap-ing goes here
+	// for (int i = 0; i < atoi(argv[1]); i++)
+	// {
+	// 	config.scheduler.queue[i] = i;
+	// 	printf("queue[%d]: %d\n", i, i);
+	// }
+	for (int i = 0; i < atoi(argv[1]); i++)
+	{
+		config.scheduler.queue[i] = atoi(argv[1])-i-1;
+		printf("queue[%d]: %d\n", i, atoi(argv[1])-i-1);
+	}
 	thread_create(&program, dongles, &config);
 	destory_all(NULL, &program, dongles, &config);
 
 	free(program.coders);
 	free(dongles);
+	free(config.scheduler.queue);
 	return (0);
 }
