@@ -6,7 +6,7 @@
 /*   By: gasoares <gasoares@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/03/20 13:04:16 by username          #+#    #+#             */
-/*   Updated: 2026/03/31 12:08:51 by gasoares         ###   ########.fr       */
+/*   Updated: 2026/03/31 13:59:02 by gasoares         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,8 +121,8 @@ int	main(int argc, char **argv)
 				"number_of_coders time_to_burnout time_to_compile "
 				"time_to_debug time_to_refactor "
 				"number_of_compiles_required dongle_cooldown scheduler\n"), 1);
-	coders = calloc(atoi(argv[1]) + 1, sizeof(t_coders));
-	dongles = calloc(atoi(argv[1]) + 1, sizeof(pthread_mutex_t));
+	coders = malloc((atoi(argv[1]) + 1) * sizeof(t_coders));
+	dongles = malloc((atoi(argv[1]) + 1) * sizeof(pthread_mutex_t));
 	init_config(&config, argv);
 	init_program(&program, coders);
 	init_dongles(dongles, atoi(argv[1]));
